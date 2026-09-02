@@ -38,8 +38,8 @@ description: Re-sync the modding knowledge base in docs/ from the local source r
 
 - New document or folder: add a mapping to `sources.json` (see `tools/README.md` for fields). Put
   single-file mappings before broad globs; the first match wins.
-- Moving a document: change `to`/`rename`. Its `id` changes with it, so the future Confluence and
-  RAG tools will treat it as new — say so in the commit message.
+- Moving a document: change `to`/`rename`. Its `id` changes with it, so the future RAG tool will
+  treat it as new — say so in the commit message.
 - Skipping a copy that exists in two repos: do not map the copy; add it under `duplicates`.
 - Forcing flags a file's head does not announce (`generated`, `superseded`, `title`…): use the
   mapping's `overrides` block keyed by the source-relative path.

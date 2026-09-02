@@ -1,7 +1,7 @@
 root = true
 
 # Everything in this repo is text. Keep LF + UTF-8 so the synced docs diff cleanly
-# against their source repos and the future Confluence/RAG tooling reads them as-is.
+# against their source repos and the future RAG tooling reads them as-is.
 [*]
 end_of_line = lf
 charset = utf-8

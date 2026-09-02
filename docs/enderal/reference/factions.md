@@ -23,7 +23,7 @@ lines: 178
 content_sha256: "dd4cbb733f1c4123a93e1c1796fdb9df10473e5c4ec897237a95a578b5ff7cb8"
 synced_at: "2026-09-02T11:44:19Z"
 sync_version: 1
-confluence_title: "Factions (enderal/reference)"
+unique_title: "Factions (enderal/reference)"
 ---
 
 # Factions

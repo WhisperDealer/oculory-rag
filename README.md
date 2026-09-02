@@ -5,15 +5,11 @@ Enderal SE actually work under the hood, what third-party mods like EGO, Requiem
 SPID do, and how my own mods (Ehlnofey, Wintersun Nordic Addon, the Enderal ports, the Zenderal
 patches) are designed and built.
 
-It exists for two consumers that do not exist yet:
+Read it here — `curated/overview.md` is the way in, and `docs/INDEX.md` lists every document.
 
-1. **Confluence** — the `docs/` tree is shaped like a page tree and every document carries the
-   metadata a sync tool needs (stable id, title, section, source). See `confluence/README.md`.
-2. **A RAG vector database** — every document carries the metadata a chunker and retriever need
-   (game, kind, tags, generated/superseded flags, confidence-tag counts, content hash). See
-   `rag/README.md`.
-
-Neither is built here. This repo is the curated, metadata-stamped corpus they will read.
+It is also shaped for one consumer that does not exist yet: **a RAG vector database**. Every
+document carries the metadata a chunker and retriever need (stable id, section, game, kind, tags,
+generated/superseded flags, confidence-tag counts, content hash). See `rag/README.md`.
 
 ## How it works
 
@@ -73,7 +69,6 @@ docs/
   INDEX.md            generated table of every document, unresolved links, duplicate checks
   catalog.json        the same data as JSON, plus link graph and per-repo branch/commit
 curated/              hand-written: overview (start here), glossary, repos
-confluence/           design note for the future Confluence sync
 rag/                  design note for the future RAG pipeline
 tools/                sync.py, sync.ps1, README (manifest field reference)
 sources.json          the manifest — the only place routing decisions live
@@ -102,7 +97,7 @@ YAML library is needed on either side):
 id: "enderal/reference/bestiary"        # destination path without docs/ and .md — the stable key
 title: "Enderal bestiary — …"           # first H1, or a title set in the manifest
 slug: "bestiary"
-section: "enderal/reference"            # Confluence ancestor chain / RAG filter
+section: "enderal/reference"            # the folder part of the id; the RAG filter
 game: "enderal"                         # skyrim | enderal | both
 kind: "reference"                       # reference | world | research | design | guide | workspace | modlist
 project: null                           # my-mod repo this belongs to, or null
@@ -126,7 +121,7 @@ sync_version: 1
 ---
 ```
 
-Optional keys: `confluence_title` (only when two docs share a title), `skill_name` /
+Optional keys: `unique_title` (only when two docs share a title), `skill_name` /
 `agent_name` / `description` / `agent_meta` (folded from the skills' and agents' own frontmatter).
 The `confidence` counts come from the `[verified]` / `[community]` / `[unverified]` /
 `[upstream]` / `[author]` marks the source docs use inline.

@@ -233,7 +233,7 @@ Relative links whose target is not part of the knowledge base. They are left as 
 
 ## Title collisions
 
-These docs share an H1; their `confluence_title` is suffixed with the section.
+These docs share an H1; their `unique_title` is suffixed with the section.
 
 - **Factions**: `enderal/reference/factions`, `skyrim/world/factions`
 

@@ -66,8 +66,8 @@ tags: ["glossary", "terminology"]
 |---|---|
 | Source repo | One of the five git repos the sync reads; canonical for its documents. |
 | Mapping | A `sources.json` entry routing source files to a destination folder with metadata. |
-| `id` | A document's destination path without `docs/` and `.md`; the stable key for Confluence and RAG. |
-| `section` | The folder part of the id; the Confluence ancestor chain and the RAG filter. |
+| `id` | A document's destination path without `docs/` and `.md`; the stable key downstream tooling uses. |
+| `section` | The folder part of the id; the RAG filter, and how the corpus groups. |
 | `kind` | `reference` (how the game is), `world` (vanilla survey), `research` (prior art), `design` (my decisions), `guide` (workspace guides and READMEs), `workspace` (skills, agents), `modlist`, `curated`. |
 | `generated` | A machine-made document; regenerate from its `generator`, never edit. |
 | `superseded` | Replaced by the document named in `superseded_by`; kept for history. |

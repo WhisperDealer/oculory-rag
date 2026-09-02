@@ -23,7 +23,7 @@ lines: 321
 content_sha256: "e148bcc0fb639f523169e266784684190551040bc39b78851e6377bbd0e67ec1"
 synced_at: "2026-09-02T11:44:19Z"
 sync_version: 1
-confluence_title: "Factions (skyrim/world)"
+unique_title: "Factions (skyrim/world)"
 ---
 
 # Factions

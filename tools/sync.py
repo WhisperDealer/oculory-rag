@@ -38,7 +38,7 @@ FM_ORDER = (
     "generated", "generator", "superseded", "superseded_by", "phase",
     "confidence", "lines", "content_sha256", "synced_at", "sync_version",
 )
-FM_OPTIONAL = ("confluence_title", "skill_name", "agent_name", "description",
+FM_OPTIONAL = ("unique_title", "skill_name", "agent_name", "description",
                "agent_meta", "source_frontmatter")
 
 RE_GENERATED_COMMENT = re.compile(r"^<!--\s*GENERATED\b", re.I)
@@ -467,7 +467,7 @@ def resolve_title_collisions(docs: list[Doc]) -> list[tuple[str, list[str]]]:
     for title, ds in groups.items():
         if len(ds) > 1:
             for d in ds:
-                d.meta["confluence_title"] = f"{title} ({d.section})" if d.section else title
+                d.meta["unique_title"] = f"{title} ({d.section})" if d.section else title
             collisions.append((title, [d.id for d in ds]))
     return sorted(collisions)
 
@@ -550,7 +550,7 @@ def build_index(docs: list[Doc], collisions, dup_results) -> str:
     out.append("")
     if collisions:
         out += ["## Title collisions", "",
-                "These docs share an H1; their `confluence_title` is suffixed with the section.", ""]
+                "These docs share an H1; their `unique_title` is suffixed with the section.", ""]
         for title, ids in collisions:
             out.append(f"- **{title}**: " + ", ".join(f"`{i}`" for i in ids))
         out.append("")

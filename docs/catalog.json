@@ -1,6 +1,6 @@
 {
   "sync_version": 1,
-  "generated_at": "2026-09-02T11:48:59Z",
+  "generated_at": "2026-09-02T17:08:32Z",
   "sources": {
     "oculory": {
       "root": "C:/dev/modding/oculory",
@@ -327,7 +327,7 @@
       "content_sha256": "dd4cbb733f1c4123a93e1c1796fdb9df10473e5c4ec897237a95a578b5ff7cb8",
       "synced_at": "2026-09-02T11:44:19Z",
       "sync_version": 1,
-      "confluence_title": "Factions (enderal/reference)",
+      "unique_title": "Factions (enderal/reference)",
       "path": "docs/enderal/reference/factions.md",
       "links_out": [
         "enderal/reference/bestiary",
@@ -3019,7 +3019,7 @@
       "content_sha256": "e148bcc0fb639f523169e266784684190551040bc39b78851e6377bbd0e67ec1",
       "synced_at": "2026-09-02T11:44:19Z",
       "sync_version": 1,
-      "confluence_title": "Factions (skyrim/world)",
+      "unique_title": "Factions (skyrim/world)",
       "path": "docs/skyrim/world/factions.md",
       "links_out": [],
       "unresolved_links": []
