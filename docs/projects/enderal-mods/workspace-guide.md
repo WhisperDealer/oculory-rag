@@ -11,17 +11,17 @@ tags: ["enderal", "enderal-mods", "porting", "claude-md", "source:enderal-mods"]
 source_repo: "enderal-mods"
 source_path: "CLAUDE.md"
 source_branch: "fix/druid-transformations"
-source_commit: "fe5eb4e615d4541d922bedc2eb7816ce355039db"
+source_commit: "a103dc582a17846cd2838ab7135433d25c1184e6"
 source_dirty: false
 generated: false
 generator: null
 superseded: false
 superseded_by: null
 phase: null
-confidence: {"author": 0, "community": 0, "unverified": 0, "upstream": 5, "verified": 83}
-lines: 1461
-content_sha256: "405911d0226ff3979383ea37736379f8a8ea3e82798a9489f312feabb7128336"
-synced_at: "2026-09-02T11:48:12Z"
+confidence: {"author": 0, "community": 1, "unverified": 1, "upstream": 5, "verified": 84}
+lines: 1480
+content_sha256: "65143065191ba3d7a89ab82bde1f67db52a3507a46fa23e503229ca40565f99f"
+synced_at: "2026-09-02T23:24:35Z"
 sync_version: 1
 ---
 
@@ -97,6 +97,25 @@ confirmed by compiling real Enderal scripts (`_00E_TalentLibrary`, `_00E_Game_Ta
 > repo with no such record proves nothing. 0.41.0 also requires the **.NET 10 SDK** (its serializer
 > package ships `tools/net10.0` only), failing with a `DotnetToolSettings.xml was not found` error
 > that never mentions .NET.
+
+## Knowledge base (oculory-rag) — search it before answering
+
+If the `oculory-rag` MCP tools are available, use them **before** answering from memory and
+before grepping `reference/` by hand:
+
+- **`search`** — the written knowledge base: engine behaviour, record patterns, SPID, Spriggit
+  and Mutagen workflow, third-party mod analyses, prior art and design notes.
+- **`game_search` / `game_read`** — the decompiled game files themselves: ~331k records and
+  ~19k Papyrus scripts, looked up by EditorID, FormID, FormKey or in-game name. Prefer these
+  over walking `reference/` by hand; they are indexed and answer in milliseconds.
+- Pass `game="enderal"` for this repo. Enderal ships a MODIFIED `Skyrim.esm`, so a
+  vanilla-Skyrim answer is often the wrong one.
+
+Cite the doc id or FormKey a claim rests on, and keep the `[verified]` / `[community]` /
+`[unverified]` marks honest — retrieved text is evidence, not proof.
+
+These tools are an optional local index. If they are not present, work in this repo exactly as
+before: nothing here depends on them.
 
 ## Enderal ground truth
 

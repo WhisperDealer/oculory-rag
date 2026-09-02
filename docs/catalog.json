@@ -1,6 +1,6 @@
 {
   "sync_version": 1,
-  "generated_at": "2026-09-02T17:08:32Z",
+  "generated_at": "2026-09-02T23:24:35Z",
   "sources": {
     "oculory": {
       "root": "C:/dev/modding/oculory",
@@ -11,25 +11,25 @@
     "ehlnofey": {
       "root": "C:/dev/modding/ehlnofey",
       "branch": "main",
-      "head": "dc118b40557541e2a8793837397d84bbf2536d37",
+      "head": "c11a8440ce4a8616becbf3e1d40866392888c650",
       "dirty_files": 0
     },
     "wintersun": {
       "root": "C:/dev/modding/Wintersun-Nordic-Addon",
       "branch": "main",
-      "head": "bd0b09507eb1cc76edd6fb95bce8a399e5c67a16",
+      "head": "67591bbcd684dedd6fb268f6ae94662b28ea96e1",
       "dirty_files": 0
     },
     "enderal-mods": {
       "root": "C:/dev/modding/enderal-mods",
       "branch": "fix/druid-transformations",
-      "head": "ee44f55f7da03063f4082d0bea3513aa029d6864",
+      "head": "a103dc582a17846cd2838ab7135433d25c1184e6",
       "dirty_files": 0
     },
     "zenderal": {
       "root": "C:/modding/mod-projects/zenderal-patches",
       "branch": "learning-books-grant-points",
-      "head": "5d012c907a82d89c10915119025cf878ab0f6dbb",
+      "head": "0a857f204ca87bf89e08ce19d50583ca88576189",
       "dirty_files": 0
     }
   },
@@ -838,7 +838,7 @@
       "source_repo": "zenderal",
       "source_path": "CLAUDE.md",
       "source_branch": "learning-books-grant-points",
-      "source_commit": "5d012c907a82d89c10915119025cf878ab0f6dbb",
+      "source_commit": "0a857f204ca87bf89e08ce19d50583ca88576189",
       "source_dirty": false,
       "generated": false,
       "generator": null,
@@ -846,15 +846,15 @@
       "superseded_by": null,
       "phase": null,
       "confidence": {
-        "verified": 74,
-        "community": 0,
-        "unverified": 0,
+        "verified": 75,
+        "community": 1,
+        "unverified": 1,
         "upstream": 5,
         "author": 0
       },
-      "lines": 1363,
-      "content_sha256": "9049a78e67f516c33d588b550309b9972b9db42f786119fc78dac783e28c14c9",
-      "synced_at": "2026-09-02T11:48:59Z",
+      "lines": 1382,
+      "content_sha256": "4463634e9c52723b0562ce84cbc5f51531dbd06131b8da7db734195e3ec71311",
+      "synced_at": "2026-09-02T23:24:35Z",
       "sync_version": 1,
       "path": "docs/modlists/zenderal/workspace-guide.md",
       "links_out": [
@@ -2131,7 +2131,7 @@
       "source_repo": "ehlnofey",
       "source_path": "CLAUDE.md",
       "source_branch": "main",
-      "source_commit": "bc9623d5ea6a587b6cfba9f63ab13266161490dd",
+      "source_commit": "c11a8440ce4a8616becbf3e1d40866392888c650",
       "source_dirty": false,
       "generated": false,
       "generator": null,
@@ -2139,15 +2139,15 @@
       "superseded_by": null,
       "phase": null,
       "confidence": {
-        "verified": 37,
-        "community": 8,
-        "unverified": 1,
+        "verified": 38,
+        "community": 9,
+        "unverified": 2,
         "upstream": 0,
         "author": 0
       },
-      "lines": 755,
-      "content_sha256": "299078fdc80b91194976c0c7a77ab6d43d98d0d91787321af21a8083fcde08a7",
-      "synced_at": "2026-09-02T11:44:19Z",
+      "lines": 773,
+      "content_sha256": "44ebc8a558a0be84f010750d7a0dbfc3777e92cefeb01bbf4186307e518cb94c",
+      "synced_at": "2026-09-02T23:24:35Z",
       "sync_version": 1,
       "path": "docs/projects/ehlnofey/workspace-guide.md",
       "links_out": [],
@@ -2667,7 +2667,7 @@
       "source_repo": "enderal-mods",
       "source_path": "CLAUDE.md",
       "source_branch": "fix/druid-transformations",
-      "source_commit": "fe5eb4e615d4541d922bedc2eb7816ce355039db",
+      "source_commit": "a103dc582a17846cd2838ab7135433d25c1184e6",
       "source_dirty": false,
       "generated": false,
       "generator": null,
@@ -2675,15 +2675,15 @@
       "superseded_by": null,
       "phase": null,
       "confidence": {
-        "verified": 83,
-        "community": 0,
-        "unverified": 0,
+        "verified": 84,
+        "community": 1,
+        "unverified": 1,
         "upstream": 5,
         "author": 0
       },
-      "lines": 1461,
-      "content_sha256": "405911d0226ff3979383ea37736379f8a8ea3e82798a9489f312feabb7128336",
-      "synced_at": "2026-09-02T11:48:12Z",
+      "lines": 1480,
+      "content_sha256": "65143065191ba3d7a89ab82bde1f67db52a3507a46fa23e503229ca40565f99f",
+      "synced_at": "2026-09-02T23:24:35Z",
       "sync_version": 1,
       "path": "docs/projects/enderal-mods/workspace-guide.md",
       "links_out": [
@@ -2795,7 +2795,7 @@
       "source_repo": "wintersun",
       "source_path": "CLAUDE.md",
       "source_branch": "main",
-      "source_commit": "0bcddc4f3de7f83c313a027badc8ebcc1c52036c",
+      "source_commit": "67591bbcd684dedd6fb268f6ae94662b28ea96e1",
       "source_dirty": false,
       "generated": false,
       "generator": null,
@@ -2803,15 +2803,15 @@
       "superseded_by": null,
       "phase": null,
       "confidence": {
-        "verified": 0,
-        "community": 0,
-        "unverified": 0,
+        "verified": 1,
+        "community": 1,
+        "unverified": 1,
         "upstream": 0,
         "author": 0
       },
-      "lines": 405,
-      "content_sha256": "0dd225dbbcb7e2caae2856300b34d68b185ae955e394a805c3e68d822b31563d",
-      "synced_at": "2026-09-02T11:44:19Z",
+      "lines": 423,
+      "content_sha256": "ca303b8c5c043cd2b7c110e63381afa71e37319fa039cda7ee4cd60a1c21c607",
+      "synced_at": "2026-09-02T23:24:35Z",
       "sync_version": 1,
       "path": "docs/projects/wintersun-nordic-addon/workspace-guide.md",
       "links_out": [],

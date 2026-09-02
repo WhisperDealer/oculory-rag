@@ -11,17 +11,17 @@ tags: ["wintersun", "religion", "claude-md", "source:wintersun"]
 source_repo: "wintersun"
 source_path: "CLAUDE.md"
 source_branch: "main"
-source_commit: "0bcddc4f3de7f83c313a027badc8ebcc1c52036c"
+source_commit: "67591bbcd684dedd6fb268f6ae94662b28ea96e1"
 source_dirty: false
 generated: false
 generator: null
 superseded: false
 superseded_by: null
 phase: null
-confidence: {"author": 0, "community": 0, "unverified": 0, "upstream": 0, "verified": 0}
-lines: 405
-content_sha256: "0dd225dbbcb7e2caae2856300b34d68b185ae955e394a805c3e68d822b31563d"
-synced_at: "2026-09-02T11:44:19Z"
+confidence: {"author": 0, "community": 1, "unverified": 1, "upstream": 0, "verified": 1}
+lines: 423
+content_sha256: "ca303b8c5c043cd2b7c110e63381afa71e37319fa039cda7ee4cd60a1c21c607"
+synced_at: "2026-09-02T23:24:35Z"
 sync_version: 1
 ---
 
@@ -40,6 +40,24 @@ and re-packed to `.esp`/`.esm`. **Never hand-edit binary plugins — edit the YA
 - Spriggit package/source: `Spriggit.Yaml.Skyrim`
 - Spriggit CLI version: `0.40.0`
 - CLI path + all tool paths: `.claude/config/tools.json` (gitignored; see Tooling config below).
+
+## Knowledge base (oculory-rag) — search it before answering
+
+If the `oculory-rag` MCP tools are available, use them **before** answering from memory and
+before grepping `reference/` by hand:
+
+- **`search`** — the written knowledge base: engine behaviour, record patterns, SPID, Spriggit
+  and Mutagen workflow, third-party mod analyses, prior art and design notes.
+- **`game_search` / `game_read`** — the decompiled game files themselves: ~331k records and
+  ~19k Papyrus scripts, looked up by EditorID, FormID, FormKey or in-game name. Prefer these
+  over walking `reference/` by hand; they are indexed and answer in milliseconds.
+- Pass `game="skyrim"` for this repo, so Enderal facts do not leak into a Skyrim answer.
+
+Cite the doc id or FormKey a claim rests on, and keep the `[verified]` / `[community]` /
+`[unverified]` marks honest — retrieved text is evidence, not proof.
+
+These tools are an optional local index. If they are not present, work in this repo exactly as
+before: nothing here depends on them.
 
 ## Tooling config (no hardcoded paths)
 
