@@ -152,8 +152,9 @@ The `confidence` counts come from the `[verified]` / `[community]` / `[unverifie
 
 `docs/mods/**` and parts of `docs/modlists/**` describe other people's mods (EGO, Requiem,
 SkyPatcher, MorrowLoot, SPID, the Zenderal list's contents). The prose is mine; the generated
-record tables are derived from those mods' plugins. Check the mods' permissions before
-redistributing any of it publicly. This repo is local-only today.
+record tables are derived from those mods' plugins. **This repo is public on GitHub**, so that
+material is already published: check each mod's permissions before adding more of it here, and
+before reusing any of it elsewhere.
 
 ## Licence
 
