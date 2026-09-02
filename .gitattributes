@@ -1,0 +1,8 @@
+# core.autocrlf=true is set globally on this machine; force LF in the repo and the
+# working tree so sync.py's byte comparison is stable and diffs stay clean.
+* text=auto eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+*.py   text eol=lf
+*.ps1  text eol=lf
+*.txt  text eol=lf
