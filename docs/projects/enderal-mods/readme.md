@@ -1,0 +1,481 @@
+---
+id: "projects/enderal-mods/readme"
+title: "enderal-mods"
+slug: "readme"
+section: "projects/enderal-mods"
+game: "enderal"
+kind: "guide"
+project: "enderal-mods"
+mod: null
+tags: ["enderal", "enderal-mods", "porting", "source:enderal-mods"]
+source_repo: "enderal-mods"
+source_path: "README.md"
+source_branch: "fix/druid-transformations"
+source_commit: "7b86a3dd10fead1ee7326591f865f59eb9e23211"
+source_dirty: false
+generated: false
+generator: null
+superseded: false
+superseded_by: null
+phase: null
+confidence: {"author": 0, "community": 0, "unverified": 0, "upstream": 0, "verified": 1}
+lines: 454
+content_sha256: "d55258e3bd2f57a8e4e623bbb8a56fa2e929dd0adc0a17a10e450a59f2e78d7c"
+synced_at: "2026-09-02T11:44:19Z"
+sync_version: 1
+---
+
+# enderal-mods
+
+Mods for **[Enderal: Forgotten Stories (Special Edition)](https://www.nexusmods.com/enderalspecialedition)**
+— bugfix and compatibility patches, ports of Skyrim SE mods, and full replacement plugins — plus the
+reference documentation on how Enderal itself works that makes writing them possible.
+
+This is a workspace, not a modlist and not tied to one. It uses
+[Spriggit](https://github.com/Mutagen-Modding/Spriggit) to convert Bethesda plugin files to and from
+human-editable YAML kept under git, and adds a command-line Papyrus toolchain, a manifest-driven
+FOMOD build, GitHub Actions CI, and a set of Claude Code skills and subagents that know how to drive
+all of it. **You edit the YAML, not the binary plugin.**
+
+- **Game:** Enderal: Forgotten Stories (Special Edition), on the SkyrimSE engine
+- **Spriggit game release:** **`EnderalSE`** — *not* `SkyrimSE` ([why](#why-enderalse))
+- **Spriggit package/source:** `Spriggit.Yaml.Skyrim`
+- **Spriggit version:** `0.40.0` (CLI, deliberately pinned)
+- **Tool paths:** resolved from `.claude/config/tools.json` (gitignored, per-machine) — **no
+  hardcoded paths in the skills.** See [Tool config](#tool-config--the-modlist) below.
+
+**What's here so far:**
+
+| Mod | Plugin | What it is |
+|---|---|---|
+| [`src/Apocalypse/`](src/Apocalypse/) | `Apocalypse - Magic of Skyrim.esp` | Enai Siaion's spell pack converted for Enderal — form version lowered so Enderal's 1.5.97 engine will load it, Elder Scrolls proper nouns renamed, and its distribution rebuilt onto Enderal's own vendor and loot lists. A **replacement plugin**, installed over the original |
+| [`src/RelentlessSword/`](src/RelentlessSword/) | `Relentless Sword - Enderal.esp` | johnskyrim's *Relentless Sword SE*, rebuilt for Enderal — clean masters (his plugin masters the three DLC stubs), shadowsteel-tier stats, and Enderal's own blueprint + Handicraft gating instead of a Skyforge recipe that could never appear. A **standalone conversion**: plugin only, install his mod for the assets and disable his ESP |
+
+Run **`/mod-new-plugin`** to add another. `build/manifest.json` drives the build, and an empty
+`"releases": []` is legal — the build reports "nothing to build" and exits 0.
+
+Start with **`CLAUDE.md`** — it carries the verified Enderal facts (masters, SKSE version, archive
+order, Papyrus import order) that everything else assumes.
+
+## Why `EnderalSE`
+
+Enderal SE runs the SkyrimSE engine, so it is tempting to treat it as Skyrim. Don't.
+`GameRelease.EnderalSE` is a distinct Mutagen release whose implicit **base-master set** includes
+`Enderal - Forgotten Stories.esm`:
+
+```csharp
+// Mutagen.Bethesda.Core/Plugins/Implicit/Implicits.cs
+EnderalSE = SkyrimSE with { BaseMasters = new ImplicitModKeyCollection(SkyrimSE.Listings.And(enderal)) };
+```
+
+It maps to `GameCategory.Skyrim`, which is why the **Skyrim** serializer package still handles it.
+Keep `.spriggit`, each plugin's `spriggit-meta.json` and `tools.json`'s `spriggit.gameRelease` all
+reading `EnderalSE`.
+
+There is a matching trap on the other side: Mutagen's implicit base masters for `EnderalSE` include
+the three Bethesda DLC, but **Enderal does not load them**. A plugin that masters a DLC passes every
+build check here and then fails to load in-game. See CLAUDE.md → "Masters".
+
+## Fresh clone — first-run setup
+
+Cloning brings the skills, agents, config **template**, and docs — but **not** machine-specific
+paths or any large/derived content (those are gitignored). Do this once on a new machine:
+
+1. **Create your tool config.**
+
+   ```powershell
+   Copy-Item ".claude/config/tools.example.json" ".claude/config/tools.json"
+   ```
+
+2. **Point it at your two game folders.** Enderal SE and Skyrim SE are separate installs and you
+   need both — Enderal ships **no Creation Kit and no Papyrus compiler**, so those (and the vanilla
+   Papyrus source) come from Skyrim SE:
+
+   - `gameRoot` / `gameDataDir` → your **Enderal Special Edition** folder
+   - `skyrimSeRoot` → your **Skyrim Special Edition** folder
+   - `papyrusCompiler`, `creationKit` → under `skyrimSeRoot`
+
+3. **Install the Spriggit CLI** (standalone — *not* part of a modlist). Grab it from the
+   [Spriggit releases](https://github.com/Mutagen-Modding/Spriggit/releases), install the .NET
+   runtime if prompted, then set `spriggitCli`. See [Installing Spriggit](#installing-spriggit-locally).
+
+4. **Set up somewhere to test.** A plain Enderal install works; an MO2 instance (your own, or an
+   Enderal modlist) is better, because you can enable and disable the built mod without touching the
+   game folder. Point `modlistRoot` / `modsDir` at it so `/mod-deploy` knows where to install.
+
+5. **Unpack the Papyrus source trees** (only if you'll compile scripts). See
+   [Papyrus scripts](#papyrus-scripts--packaging) — there are **three**, and their order matters.
+
+6. **Verify.**
+
+   ```powershell
+   . ".claude/config/tools.ps1"
+   Assert-Tool $Tools.spriggitCli     'spriggitCli'
+   Assert-Tool $Tools.papyrusCompiler 'papyrusCompiler'   # if you'll compile scripts
+   $Tools | ConvertTo-Json -Depth 4
+   ```
+
+   `Assert-Tool` throws on a missing/empty path — fix those before running the skills.
+
+## Installing Spriggit locally
+
+[Spriggit](https://github.com/Mutagen-Modding/Spriggit) converts Bethesda plugins to and from a
+git-friendly text format so you can version-control patches like source code (diffs, branches, PRs).
+It ships as a **CLI** (`Spriggit.CLI.exe`, what this workspace uses, needs a .NET runtime) and a
+Windows **GUI**.
+
+1. Download the CLI zip from the [Releases page](https://github.com/Mutagen-Modding/Spriggit/releases).
+   Unzip it anywhere.
+2. Install the **.NET runtime** if prompted on first run.
+3. Set the CLI path **once** in `.claude/config/tools.json` (`spriggitCli`); every skill reads it
+   from there. If you move or upgrade the CLI, edit that one file — not the skills.
+
+The serializer itself (`Spriggit.Yaml.Skyrim`) is a NuGet package the CLI fetches on demand. The
+**`.spriggit`** file in this repo pins its name, version and game release, so `deserialize`
+automatically uses the exact serializer that produced the YAML — everyone builds byte-identical
+plugins.
+
+> **`0.40.0` is pinned deliberately. Do not upgrade without reading the note in `CLAUDE.md`** —
+> 0.41.0 silently drops leveled-list entries carrying owner ExtraData, which is exactly the record
+> shape a loot/vendor patch is made of.
+
+## Tool config & the modlist
+
+Every tool path the skills use lives in one place:
+
+- **`.claude/config/tools.json`** — your machine's actual paths. **Gitignored** (per-machine).
+- **`.claude/config/tools.example.json`** — committed template with documented keys.
+- **`.claude/config/tools.ps1`** — dot-sourced by the skills (`. ".claude/config/tools.ps1"`) to
+  expose `$Tools` (e.g. `$Tools.papyrusCompiler`) plus an `Assert-Tool` guard that fails loudly on a
+  missing/empty path.
+
+**Change a path? Edit `tools.json` — never the skills.**
+
+An installed MO2 instance — especially a Wabbajack Enderal list — is **hundreds of GB**, so if you
+keep one under the repo it is gitignored (`/modlist/`, `/downloads/`) and never committed. It can
+live anywhere; `tools.json` is what points at it.
+
+## The round-trip workflow
+
+```
+.esp/.esm  ──serialize──►  YAML (committed to git)  ──deserialize──►  .esp/.esm
+                 ▲                                                          │
+                 └──────────────── you edit the YAML ◄─────────────────────┘
+```
+
+1. **Serialize** a plugin once to create its YAML folder.
+2. Edit the YAML as text (and commit it).
+3. **Deserialize** to rebuild the plugin.
+4. Load the rebuilt plugin in **xEdit in `-EnderalSE` mode** to verify before shipping.
+
+## What is committed vs. ignored
+
+| Committed (your authored work)          | Ignored (`.gitignore`)                                   |
+|-----------------------------------------|----------------------------------------------------------|
+| Each patch's YAML folder                | Binary plugins (`*.esp/*.esm/*.esl`)                     |
+| Papyrus source `src/<PatchName>/Scripts/source/*.psc` | Compiled scripts (`*.pex`)\*, archives (`*.bsa`) |
+| A release's FOMOD, if it has one (`build/staging/<release>/fomod/`) — none currently do | Build output (`dist/`, `build/dist/`) and the derived `.esp`/`.pex` inside `build/staging/<release>/` |
+| `.spriggit`, configs, docs, `CLAUDE.md` | Enderal/third-party reference decompiles (`/reference/`) |
+| `arch-docs/` curation + patterns docs   | Unpacked Papyrus source (`/papyrus-source/`), the modlist (`/modlist/`), editor dirs |
+
+**You commit source, not build artifacts.**
+
+\* **One deliberate exception.** Compiled `.pex` are ignored by default, but a patch that ships
+scripts opts its `Scripts/compiled/` folder back in through an explicit `.gitignore` rule. CI cannot
+run the Papyrus compiler, so it packages the committed `.pex` as-is. This is the only build artifact
+in the repo and it exists for that single reason.
+
+## Per-plugin folder layout
+
+Created automatically when you serialize a plugin:
+
+```
+src/<PatchName>/<pluginFolderName>/
+  RecordData.yaml        # plugin header: ModKey, GameRelease (EnderalSE), masters, author, Stats.Version
+  spriggit-meta.json     # { PackageName, Version, Release, ModKey }
+  <RecordType>/          # one folder per record type: Weapons, MagicEffects, Quests, Perks, ...
+    <EditorID> - <FormID>_<Master>.esp.yaml
+```
+
+File naming is fixed by Spriggit: `<EditorID> - <FormID>_<Master>.esp.yaml`.
+
+## Spriggit commands (CLI 0.40.0)
+
+Paths/settings come from `.claude/config/tools.json` via `. ".claude/config/tools.ps1"`.
+
+### Serialize (plugin → YAML)
+
+```powershell
+. ".claude/config/tools.ps1"
+& (Assert-Tool $Tools.spriggitCli 'spriggitCli') serialize `
+  --InputPath   "MyPatch.esp" `
+  --OutputPath  "./MyPatch" `
+  --GameRelease $Tools.spriggit.gameRelease `
+  --PackageName $Tools.spriggit.packageName `
+  --PackageVersion $Tools.spriggit.packageVersion
+```
+
+`$Tools.spriggit.gameRelease` is **`EnderalSE`**.
+
+### Deserialize (YAML → plugin)
+
+```powershell
+. ".claude/config/tools.ps1"
+& (Assert-Tool $Tools.spriggitCli 'spriggitCli') deserialize `
+  --InputPath   "./MyPatch" `
+  --OutputPath  "MyPatch.esp"
+```
+
+On deserialize, `--PackageName`/`--PackageVersion` can be left blank — Spriggit auto-detects them
+from the folder's `spriggit-meta.json`.
+
+### Decompiling reference masters (lookup only)
+
+Serialize Enderal's ESM or third-party plugins into a **gitignored** `reference/` folder so you can
+grep them for FormKeys without committing them. This is how you find Enderal's own worldspace,
+keyword and talent-perk FormKeys — do **not** copy a constants table out of Skyrim documentation:
+
+```powershell
+. ".claude/config/tools.ps1"
+& (Assert-Tool $Tools.spriggitCli 'spriggitCli') serialize `
+  --InputPath   "$($Tools.gameDataDir)/Enderal - Forgotten Stories.esm" `
+  --OutputPath  "./reference/base/EnderalFS" `
+  --GameRelease $Tools.spriggit.gameRelease `
+  --PackageName $Tools.spriggit.packageName `
+  --PackageVersion $Tools.spriggit.packageVersion
+```
+
+Or just run **`/spriggit-decompile-reference`**.
+
+## FormKey discipline
+
+- New records use **the patch plugin's** name as the FormKey suffix (`000801:YourPatch.esp`).
+- Overrides keep the **defining master's** suffix — `:Enderal - Forgotten Stories.esm` for Enderal
+  records, `:Skyrim.esm` for ones Enderal left vanilla, `:<SomeMod>.esp` for third-party.
+- Masters in `RecordData.yaml` go in load order: `Skyrim.esm`, `Update.esm`,
+  `Enderal - Forgotten Stories.esm`, then third-party plugins.
+- **Always grep the whole workspace for a hex FormID before assigning it** (`/formkey-check`).
+- ESL-flagged plugins are limited to `0x800–0xFFF` for **new** records; overrides cost nothing.
+
+See `CLAUDE.md` for the full conventions, guardrails and gotchas, and
+`arch-docs/enderal-record-patterns.md` for record shapes that build cleanly and still do nothing
+in-game.
+
+## Papyrus scripts & packaging
+
+### Toolchain (paths from `tools.json`)
+
+| Step | Tool | Config key |
+|------|------|------------|
+| Extract `.bsa` | BSA Browser CLI (`bsab.exe`) | `$Tools.bsab` |
+| Decompile `.pex` → `.psc` | Champollion | `$Tools.champollion` |
+| Compile `.psc` → `.pex` | Papyrus Compiler (from Skyrim SE) | `$Tools.papyrusCompiler` |
+| Build `.esp` | Spriggit | `$Tools.spriggitCli` |
+| Verify | xEdit **in `-EnderalSE` mode** | `$Tools.xedit` |
+
+### The three source trees (and why order matters)
+
+Enderal has **three** Papyrus source trees, and **55 script names exist in both Enderal's and
+Skyrim's**. The compiler's `-i` path is **first-wins** (verified against this toolchain), so Enderal
+must come first or you compile against vanilla signatures — which fails at *runtime*, not at compile
+time.
+
+| Order | Tree | Unpack from | `tools.json` key |
+|---|---|---|---|
+| 1 | Enderal (~5000 `.psc`) | `<gameDataDir>/ScriptsEnderal.zip` → `source/scripts/` | `papyrusSource.enderal` |
+| 2 | SKSE (74 `.psc`) | `<gameDataDir>/Source/Scripts` (already loose) | `papyrusSource.skse` |
+| 3 | Vanilla (~14300 `.psc`) | `<skyrimSeRoot>/Data/Scripts.zip` → `Source/Scripts/` | `papyrusSource.vanilla` |
+
+`TESV_Papyrus_Flags.flg` ships only in the **vanilla** zip — that is why tree 3 must be on the path
+even when you're only touching Enderal code. Unpack trees 1 and 3 anywhere; `/papyrus-source/` is
+gitignored for the purpose. The `/papyrus-compile` skill assembles `-i` in this order for you.
+
+> Enderal ships **real source** for its own scripts in `ScriptsEnderal.zip`. Read it rather than
+> decompiling — Champollion output is a reconstruction with auto-named variables and lost comments.
+
+### Pipeline
+
+```
+.bsa ──bsa-extract──► .pex ──pex-decompile──► .psc ──(edit)──► .psc
+                                                                 │
+   dist/<PatchName>/ ◄──package-mod──┬── .pex ◄──papyrus-compile─┘
+   (install in MO2)                  └── <PatchName>.esp ◄──spriggit-deserialize
+```
+
+### Testing
+
+Use the **`mod-deploy`** skill rather than copying by hand: it reads the destination from
+`tools.json` and then *verifies* the mod landed under the exact expected folder name. A mod in a
+wrongly-named folder is invisible to MO2 and the game runs happily without it, so the symptom looks
+like a broken record rather than a bad path.
+
+Then in MO2: refresh, enable the mod and its `.esp`, set load order, and launch through MO2.
+**A clean compile is necessary but not sufficient — verify it actually runs in-game.**
+
+## Releases — install requirements
+
+Every release here ships as a **plain archive**: the `.esp` (plus `Scripts/`) at the root, no FOMOD
+installer. A patch with nothing to choose does not need a wizard — see `/mod-new-plugin` step 5 for
+when one *is* warranted.
+
+The consequence is that **install-time requirements have to reach the user from here and from the
+mod page**, because there is no installer to display them. Keep this section and the Nexus
+description in sync; if a patch's requirements ever grow past what a description can carry, that is
+itself the signal to give it a FOMOD.
+
+### `Apocalypse - Enderal Patch`
+
+A **replacement plugin**, not a patch: it ships under Enai's original filename
+`Apocalypse - Magic of Skyrim.esp` so the mod's BSAs keep loading. Install it over the original.
+
+- **Requires Enai Siaion's *Apocalypse - Magic of Skyrim*, installed first** — this release replaces
+  only the `.esp`; every mesh, texture, sound and script comes from his BSAs.
+- **Let it overwrite `Apocalypse - Magic of Skyrim.esp`.** Same filename by design. The original
+  plugin is form version 1.71, which Enderal's 1.5.97 engine silently refuses to load, so the
+  unmodified mod is completely inert in Enderal — installed, enabled, and adding nothing.
+- Spell tomes and scrolls are distributed through Enderal's own vendor and loot lists, and placed
+  directly with named spell merchants in Ark, the Sun Temple, the Undercity and Duneville.
+- **Dragonborn-only content is gone** (staff recipes, the Tamriel worldspace override) and the
+  Elder Scrolls proper nouns are renamed to Enderal's.
+
+### `Relentless Sword - Enderal Conversion`
+
+A **standalone conversion**, plugin only — it carries no meshes and no textures. Six blades (a
+longsword and a greatsword, each plain / Fire / Ice), ESL-flagged.
+
+- **Requires johnskyrim's *[Relentless Sword SE](https://www.nexusmods.com/skyrimspecialedition/mods/114022)*, installed first**, for its meshes and
+  textures. Pick the **CORE** (runed) branch in *his* installer — NoRune ships different meshes and
+  only two weapons, so it is not covered. Any texture resolution works; this plugin references
+  meshes and no textures at all.
+- **Then disable `Relentless Sword SE - Johnskyrim.esp`.** This release replaces it. His plugin
+  masters `Dawnguard.esm`, `HearthFires.esm` and `Dragonborn.esm` — Enderal ships those as empty
+  stubs — and its recipes are keyed to the Skyforge and a Companions-questline global, neither of
+  which exists anywhere in Enderal, so the swords were uncraftable there.
+- **Retuned to Enderal's shadowsteel tier** (23/6 one-handed, 37/11 two-handed — parity with *Sword
+  of the Righteous Path*), given `WeapTypeMelee`, and given the dismantle recipes Forgotten Stories
+  gives its own gear.
+- **How you get them:** *Blueprint: Relentless Sword (Handicraft 50)* on the noble-dresser shelf in
+  the Riverville Temple (free to take), or from blueprint traders at level 30. One copy unlocks all
+  six; keep it in your pack, the recipes check for it. Forge at any forge with Handicraft 50.
+- It overrides exactly two records — the Riverville Temple interior and
+  `_00ETraderCraftingPlansC` — both forwarded from the Forgotten Stories versions. **Load it after
+  anything else that edits the Riverville Temple**, or you lose the shelf copy and the trader
+  becomes your only source.
+- **Known conflict with `Enderal SE - Gameplay Overhaul.esp` (EGO), which overrides both records.**
+  **[verified]**
+  - `_00ETraderCraftingPlansC 148ABE` — **material.** Loading after EGO reverts its version of the
+    list: EGO rebands every entry to levels 1/15/20 (FS uses 19–30), adds `ChanceNone: 0.4`, and
+    adds six blueprints of its own (`001E6A`–`001E6C`, `001E72`, `002C56`, `002C77`), all of which
+    this override drops. The blueprint on the temple shelf is unaffected, so the swords stay
+    obtainable either way — but on an EGO load order, put this plugin **before** EGO and take the
+    shelf copy, or accept losing EGO's blueprint tiering. There is no EGO-forwarding patch here yet.
+  - `FlusshaimTemple 015282` — **benign.** The cell's own fields are identical between EGO's copy
+    and FS's apart from EGO's usual localized-string collapse. EGO's edit inside the temple is a
+    separate `PlacedObject` record (`0240EC:Enderal - Forgotten Stories.esm`), and placed refs are
+    independent records — this override does not list it and therefore does not remove it.
+
+## CI build & release (GitHub Actions)
+
+`.github/workflows/build.yml` rebuilds every release archive on each push to `main` — as a **smoke
+test only, publishing nothing** — and cuts a named GitHub Release when you push a `v*` tag. It runs
+on a free `windows-latest` runner and is driven by **`build/build.ps1`** + **`build/manifest.json`**.
+The build script contains no patch-specific names — everything it builds comes from the manifest, so
+adding a patch means editing JSON, not PowerShell.
+
+What CI does: download the pinned Spriggit CLI → `deserialize` every plugin's YAML into the
+committed `build/staging/<release>/` (a release with a `fomod/` has it checked into git; only the
+derived `.esp`/`.pex` are regenerated) → copy the committed `.pex` into that release's `Scripts/` →
+`7z` each release into `build/dist/*.7z`. On a `v*` tag only, the archives are then attached to a new
+GitHub Release named for the tag.
+
+**Archives reach you in exactly two ways:** a **PR artifact** while a change is in review, and a
+**`v*` tag Release** when it ships. Nothing is published from `main`.
+
+**An empty manifest is fine.** `build.ps1` reports "nothing to build" and exits 0 without needing
+Spriggit or 7-Zip; the release step is skipped. A `v*` tag that builds nothing *is* an error and
+fails the workflow.
+
+**CI does NOT compile Papyrus.** The Papyrus compiler needs the licensed base-game and Enderal script
+source, so each script-shipping patch's compiled scripts are **committed** at
+`src/<PatchName>/Scripts/compiled/*.pex` (an explicit exception in `.gitignore`).
+
+> **Contract:** whenever you change a `.psc`, recompile (`/papyrus-compile`) and **commit the
+> updated `.pex`** — otherwise the packaged patch ships stale scripts. `build/build.ps1` fails the
+> build if any `.pex` is missing, but it cannot detect a *stale* one.
+
+Run the same build locally:
+
+```powershell
+pwsh build/build.ps1              # full build -> build/dist/*.7z (+ a size/SHA-256 summary)
+pwsh build/build.ps1 -CheckFomod  # only verify manifest <-> fomod/ModuleConfig.xml parity
+                                  # (also checks installer image paths resolve + aren't progressive JPEGs)
+```
+
+To release: `git tag v1.0 && git push origin v1.0`. The **`github-release`** skill automates the
+curated flow: changelog from the previous tag, push the tag, watch the build, then replace CI's
+generated notes with the curated ones and mark the release Latest.
+
+**PR test builds.** `.github/workflows/pr-build.yml` runs the *same* build on every pull request and
+attaches the archives as an Actions artifact named `pr-<number>-test-builds`, plus a sticky comment
+linking to the run. Each push replaces the previous artifact; merging or closing the PR deletes it.
+A PR that produces no archives (docs/tooling only) skips the upload and comment instead of failing.
+Shared setup+build steps live in the composite action `.github/actions/build-mod-archives/`.
+
+## Claude skills & subagents
+
+This workspace ships Claude Code helpers under `.claude/` (committed, so they're shared). They bundle
+the verified CLI paths and flags so you don't retype them.
+
+**Skills** (invoke with `/<name>`):
+
+| Skill | What it does |
+|-------|--------------|
+| `mod-new-plugin` | **Scaffold a new mod** — YAML folder + manifest entry (FOMOD only if the install has options), buildable from the first commit |
+| `spriggit-serialize` | Serialize a plugin → its YAML folder |
+| `spriggit-deserialize` | Rebuild a plugin from its YAML folder (+ xEdit verify reminder) |
+| `spriggit-decompile-reference` | Serialize Enderal's ESM or a third-party mod into gitignored `reference/` for lookups |
+| `formkey-check` | Scan the workspace (+ `reference/`) for FormID collisions or the next free block |
+| `bsa-extract` | Extract/list files from Enderal's `E - *.bsa` and friends (`bsab.exe`) |
+| `pex-decompile` | Decompile `.pex` → editable `.psc` (Champollion) |
+| `papyrus-compile` | Compile `.psc` → `.pex` with the correct three-tree import order |
+| `package-mod` | Assemble `dist/<PatchName>/` (esp + scripts) for MO2 testing |
+| `mod-deploy` | **Deploy into an MO2 instance and verify it landed** under the exact expected folder name |
+| `github-release` | Cut a curated `vX.Y.Z` release — changelog, tag push, then curate CI's notes |
+
+**Subagents:**
+
+| Subagent | Role |
+|----------|------|
+| `spriggit-record-editor` | Creates/edits Spriggit YAML records following this repo's naming & FormKey conventions |
+| `spriggit-formkey-auditor` | Read-only audit for collisions, dangling references, broken invariants, and in-game anti-patterns |
+| `papyrus-script-engineer` | Cleans decompiled `.psc`, fixes compile errors, drives the extract→compile→package loop |
+
+**Automatic checks.** `.claude/settings.json` registers a `PostToolUse` hook that runs
+`build/Test-RecordYaml.ps1` after every edit to a Spriggit record file — a fast structural check
+(tabs, BOMs, odd indentation, ESL FormID range, and whether the filename's `<EditorID>`/`<FormID>`
+still agree with the contents). Run it by hand over the whole repo with:
+
+```powershell
+pwsh build/Test-RecordYaml.ps1
+```
+
+## Docs
+
+| File | What it's for |
+|---|---|
+| `CLAUDE.md` | **Read first.** Verified Enderal facts, conventions, guardrails, gotchas |
+| **`arch-docs/enderal/`** | **How Enderal works** — plugin architecture, progression, combat, visuals, crafting, scripting, factions, bestiary, world & dungeons. Nine documents mined from the serialized plugins and SureAI's own source; `arch-docs/enderal/README.md` indexes them |
+| `arch-docs/enderal-record-patterns.md` | Record shapes that work, and the ones that silently don't |
+| **`arch-docs/EGO/`** | **`Enderal SE - Gameplay Overhaul.esp`** — 6203 overridden records, the biggest conflict surface in most Enderal load orders. Read `patching-ego.md` before any combat/loot/crafting patch |
+| `CONTRIBUTING.md` | How to propose a mod |
+
+## Credits & licence
+
+Enderal: Forgotten Stories is by **SureAI**. This repo contains no Enderal or Bethesda assets —
+`reference/`, `papyrus-source/` and `modlist/` are gitignored precisely so none can be committed.
+Tooling and original work in this repo are licensed under `LICENSE`. Where a release rebuilds
+someone else's mod — *Apocalypse - Magic of Skyrim* is **Enai Siaion's**, and *Relentless Sword SE*
+is **johnskyrim's**, both redistributed here under their authors' permissions — that work remains
+under its author's own terms and is credited on its mod page and in the plugin header. The Relentless
+Sword release ships **no assets at all**: the models and textures stay in johnskyrim's own download,
+which the player installs alongside it.
