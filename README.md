@@ -7,9 +7,10 @@ patches) are designed and built.
 
 Read it here — `curated/overview.md` is the way in, and `docs/INDEX.md` lists every document.
 
-It is also shaped for one consumer that does not exist yet: **a RAG vector database**. Every
-document carries the metadata a chunker and retriever need (stable id, section, game, kind, tags,
-generated/superseded flags, confidence-tag counts, content hash). See `rag/README.md`.
+It is also **retrievable from Claude Code**. Every document carries the metadata a chunker and
+retriever need (stable id, section, game, kind, tags, generated/superseded flags, confidence-tag
+counts, content hash), and `rag/` turns that into a hybrid BM25 + local-embedding index served over
+MCP, so any project on this machine can search the knowledge base. See `rag/README.md`.
 
 ## How it works
 
@@ -45,7 +46,8 @@ powershell -File tools/sync.ps1 --check   # same thing from PowerShell 5.1
 ```
 
 Then review `docs/INDEX.md` (the "Unresolved links" and "Duplicate-copy checks" sections in
-particular) and commit `docs/` together with any `sources.json` change. The knowledge base
+particular), rebuild the retrieval index with `.venv\Scripts\python.exe rag\index.py --build`,
+and commit `docs/` together with any `sources.json` change. The knowledge base
 reflects **whatever branch each source repo has checked out**; the branch and commit are recorded
 in every document's frontmatter, so mention the branches in the commit message when they are not
 `main`.
@@ -69,10 +71,30 @@ docs/
   INDEX.md            generated table of every document, unresolved links, duplicate checks
   catalog.json        the same data as JSON, plus link graph and per-repo branch/commit
 curated/              hand-written: overview (start here), glossary, repos
-rag/                  design note for the future RAG pipeline
+rag/                  the retriever: chunker, SQLite index, MCP server, design note
 tools/                sync.py, sync.ps1, README (manifest field reference)
 sources.json          the manifest — the only place routing decisions live
 ```
+
+## Searching it from Claude Code
+
+`rag/` indexes the corpus and serves it as an MCP server, so `search`, `fetch` and `list_docs` are
+available in every Claude Code project on this machine — not just this one.
+
+```powershell
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r rag\requirements.txt
+.venv\Scripts\python.exe rag\index.py --build --stats
+
+claude mcp add --scope user oculory-rag -- `
+  C:/dev/modding/confluence-rag-modding/.venv/Scripts/python.exe `
+  C:/dev/modding/confluence-rag-modding/rag/server.py
+```
+
+Retrieval is hybrid: SQLite FTS5 for keywords and a local ONNX embedding model for meaning, fused
+and filtered on the frontmatter (`game` first — Skyrim and Enderal facts must not mix). It runs
+offline, needs no API key, and the index is derived state you rebuild rather than commit. Full
+detail, including the retrieval quality bar, is in `rag/README.md`.
 
 ## Source repos
 

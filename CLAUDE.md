@@ -23,8 +23,10 @@ RAG vector store. Read `README.md` for the layout and `curated/overview.md` for 
    dependencies so the corpus can be rebuilt anywhere. `tools/sync.ps1` is only a wrapper.
 7. **LF, UTF-8, no BOM** everywhere (`.editorconfig`, `.gitattributes`). The sync normalises what
    it reads and writes LF explicitly.
-8. **Don't fold the future in early.** `rag/` holds a design note, not code. Build that tool when
-   asked, as a separate tool that reads `docs/catalog.json` and the frontmatter.
+8. **`rag/` is the retriever; it may take dependencies.** It reads `docs/catalog.json` and the
+   frontmatter and never writes to them. Its deps live in `rag/requirements.txt` and the repo
+   `.venv`; `rag/chunk.py` stays stdlib-only so the chunker stays portable to another store.
+   After any sync that changed `docs/`, run `python rag/index.py --build`.
 
 ## Map
 
@@ -34,8 +36,9 @@ tools/sync.py              the sync (see tools/README.md for flags and manifest 
 tools/sync.ps1             PowerShell 5.1 wrapper
 docs/                      GENERATED corpus; INDEX.md and catalog.json are its indexes
 curated/                   overview, glossary, repos — hand-written
-rag/README.md              how chunking, metadata and filtering are meant to work
-.claude/skills/sync-docs   the /sync-docs skill: check → sync → review → commit
+rag/                       the retriever: chunk.py, store.py, index.py, search.py, server.py
+rag/README.md              the design note, and how to build and register the index
+.claude/skills/sync-docs   the /sync-docs skill: check → sync → review → reindex → commit
 ```
 
 ## Conventions carried over from the source repos

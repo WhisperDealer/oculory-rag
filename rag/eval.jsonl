@@ -1,0 +1,15 @@
+{"q": "how do I give NPCs a spell without editing their actor records", "expect": ["tooling/spid", "enderal/tooling/spid-in-enderal"]}
+{"q": "why can't I treat Enderal like Skyrim when it comes to masters and load order", "expect": ["enderal/reference/plugin-architecture"]}
+{"q": "what does EGO change about spell costs and the magic system", "expect": ["mods/ego/magic-and-talents"]}
+{"q": "how does Requiem delevel the world", "expect": ["mods/requiem/plugin-analysis", "mods/requiem/lessons-for-ehlnofey", "mods/requiem/reqtificator"]}
+{"q": "decompile a pex script back into readable source", "expect": ["workspace/skills/pex-decompile"]}
+{"q": "the form version ceiling that stops Enderal loading a plugin", "expect": ["projects/enderal-mods/workspace-guide", "modlists/zenderal/workspace-guide"]}
+{"q": "which enemies are bosses in Enderal and how are the tier prefixes named", "expect": ["enderal/reference/bestiary"]}
+{"q": "how do memory trees and the class system work in Enderal", "expect": ["enderal/reference/progression-and-classes"]}
+{"q": "check a plugin for FormKey collisions", "expect": ["workspace/skills/formkey-check"]}
+{"q": "what does MorrowLoot do to levelled lists and loot", "expect": ["mods/morrowloot/morrowloot"]}
+{"q": "serialize a plugin to YAML with Spriggit", "expect": ["workspace/skills/spriggit-serialize", "workspace/skills/spriggit-deserialize"]}
+{"q": "patching records at runtime from an INI rule file", "expect": ["mods/skypatcher/skypatcher"]}
+{"q": "which holds and regions make up the base game", "expect": ["skyrim/world/regions", "skyrim/world/overview"], "filters": {"game": "skyrim"}}
+{"q": "does EGO override DragonPriestHelmEbonyAA", "expect": ["mods/ego/conflict-index"]}
+{"q": "what should Ehlnofey take from the Requiem approach", "expect": ["mods/requiem/lessons-for-ehlnofey", "projects/ehlnofey/design/requiem-method"]}

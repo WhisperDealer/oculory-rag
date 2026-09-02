@@ -1,0 +1,10 @@
+# rag/ dependencies. tools/sync.py and rag/chunk.py stay stdlib-only; everything
+# here is for the index and the MCP server. Pinned so the corpus rebuilds the same
+# way on another machine. Install into the repo .venv (gitignored):
+#
+#   python -m venv .venv
+#   .venv/Scripts/python.exe -m pip install -r rag/requirements.txt
+#
+fastembed==0.8.0
+numpy==2.5.2
+mcp==2.1.1
