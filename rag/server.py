@@ -28,6 +28,7 @@ SEARCH_BUDGET = 14000        # characters of chunk text returned by one search
 FETCH_BUDGET = 20000         # above this a document is outlined, not dumped
 
 _store = None
+_game_store = None
 _stale_note = ""
 
 
@@ -49,6 +50,19 @@ def get_store():
                            " -- run `python rag/index.py --build` to refresh it.")
             log(f"index stale: built against catalog {built}, current is {current}")
     return _store
+
+
+def get_game_store():
+    """Open the game-data index on first use. Returns None when it has not been built."""
+    global _game_store
+    if _game_store is None:
+        from gamedata import GameStore
+        try:
+            _game_store = GameStore()
+        except FileNotFoundError as exc:
+            log(f"game-data index unavailable: {exc}")
+            return None
+    return _game_store
 
 
 def _filters(game=None, section=None, kind=None, project=None, mod=None, tag=None,
@@ -272,6 +286,113 @@ def list_docs(section: str | None = None, game: str | None = None,
         out.append(f"  {mark} {row['id']:<52} {row['game']:<7} {row['lines']:>5}L"
                    f"  {row['title']}")
     return "\n".join(out) + _stale_note
+
+
+@server.tool(
+    name="game_search",
+    description=(
+        "Look up actual vanilla Skyrim SE / Enderal game records and Papyrus scripts, "
+        "decompiled from the plugins themselves: ~357k records and 19k scripts. Use to "
+        "find a record's EditorID or FormID, check what a vanilla record contains before "
+        "overriding it, or find the script behind a behaviour. Accepts an EditorID, a "
+        "FormID, a FormKey, or an in-game name like \"Blades Sword\". This is ground "
+        "truth from the game files -- the `search` tool covers written documentation "
+        "instead."
+    ),
+)
+def game_search(query: str, kind: str = "any", game: str | None = None,
+                type: str | None = None, plugin: str | None = None,
+                limit: int = 20) -> str:
+    """Args:
+        query: EditorID, FormID (03AEB9), FormKey (03AEB9:Skyrim.esm), script name, or
+            an in-game display name. Exact identifier matches are returned first.
+        kind: "record", "script", or "any".
+        game: "skyrim" or "enderal". Enderal ships a MODIFIED Skyrim.esm, so the same
+            EditorID can differ between them -- filter when it matters.
+        type: Record type folder, e.g. "Weapons", "Spells", "Npcs", "Quests", "Books".
+        plugin: e.g. "Skyrim.esm", "Dragonborn.esm", "Enderal - Forgotten Stories.esm".
+        limit: Maximum rows (1-100).
+    """
+    store = get_game_store()
+    if store is None:
+        return ("The game-data index has not been built. Run:"
+                " python rag/gamedata.py --build")
+    limit = max(1, min(int(limit), 100))
+    rows = store.find(query, kind=kind, game=game, record_type=type,
+                      plugin=plugin, limit=limit)
+    if not rows:
+        return (f"No game record or script matches {query!r}."
+                " Try an EditorID, a FormID, or fewer filters.")
+
+    out = [f"{len(rows)} matches for {query!r}:"]
+    for row in rows:
+        if row["kind"] == "script":
+            out.append(f"  script  {row['name']:<44} {row['game']:<8} {row['source_set']}"
+                       f"  ({row['size']}b)")
+        else:
+            name = row["name_en"] or "-"
+            out.append(f"  {row['record_type'][:12]:<12} {row['editor_id'][:38]:<38}"
+                       f" {row['form_key']:<34} {row['game']:<8} {name[:30]}")
+    out.append("\nRead any of them with game_read(<EditorID>, <FormKey> or <script name>).")
+    return "\n".join(out)
+
+
+@server.tool(
+    name="game_read",
+    description=(
+        "Read one game record's full YAML, or one Papyrus script's source, from the "
+        "decompiled game files. Use after game_search to see exactly what a vanilla "
+        "record contains. Non-English localisations are stripped by default."
+    ),
+)
+def game_read(ref: str, game: str | None = None, full: bool = False,
+              max_chars: int = 20000) -> str:
+    """Args:
+        ref: EditorID, FormID, FormKey, or a Papyrus script name.
+        game: Disambiguate when Skyrim and Enderal both define the EditorID.
+        full: Keep all nine localisations instead of English only.
+        max_chars: Truncate above this.
+    """
+    store = get_game_store()
+    if store is None:
+        return ("The game-data index has not been built. Run:"
+                " python rag/gamedata.py --build")
+
+    import gamedata as G
+
+    rows = store.find(ref, kind="any", game=game, limit=8)
+    if not rows:
+        return f"Nothing found for {ref!r}. Use game_search to locate it first."
+    row = rows[0]
+    others = rows[1:4]
+
+    text = G.read_all(row["path"])
+    if not text:
+        return (f"Indexed at {row['path']} but the file could not be read."
+                " The source repo may have moved; re-run python rag/gamedata.py --build")
+
+    if row["kind"] == "script":
+        header = (f"# {row['name']}  (Papyrus, {row['game']}, {row['source_set']})\n"
+                  f"# {row['path']}")
+    else:
+        if not full:
+            text = G.trim_localisations(text)
+        header = (f"# {row['editor_id'] or '(no EditorID)'}  {row['form_key']}\n"
+                  f"# {row['record_type']} · {row['game']} · {row['source_set']}"
+                  + (f" · {row['name_en']}" if row["name_en"] else "")
+                  + f"\n# {row['path']}")
+
+    if len(text) > max_chars:
+        text = text[:max_chars].rstrip() + f"\n… (truncated at {max_chars} characters)"
+
+    body = f"{header}\n\n{text}"
+    if others:
+        labels = []
+        for o in others:
+            labels.append(o["name"] if o["kind"] == "script"
+                          else f"{o['editor_id']} {o['form_key']} ({o['game']})")
+        body += "\n\nOther matches: " + "; ".join(labels)
+    return body
 
 
 if __name__ == "__main__":

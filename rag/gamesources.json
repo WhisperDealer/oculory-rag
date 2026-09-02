@@ -1,0 +1,119 @@
+{
+  "$comment": [
+    "Manifest for the game-data index. Routing decisions live here, never in gamedata.py,",
+    "mirroring how sources.json governs the prose corpus.",
+    "",
+    "These trees hold decompiled Bethesda and SureAI content: copyrighted game data. They are",
+    "indexed IN PLACE and never copied into this repo. Both source repos already gitignore",
+    "reference/ with zero files tracked; keep it that way. Nothing under 'root' may be committed",
+    "here, and rag/index/ is gitignored.",
+    "",
+    "A 'records' set is a Spriggit YAML dump: <root>/<RecordType>/<EditorID> - <FormID>_<plugin>.yaml.",
+    "A 'scripts' set is Papyrus .psc source, indexed with its full text (21 MB total).",
+    "Sets listed under 'skipped' are byte-identical copies of a canonical set; indexing them would",
+    "double-count roughly 234,000 records."
+  ],
+  "sets": [
+    {
+      "name": "skyrim",
+      "root": "C:/dev/modding/Wintersun-Nordic-Addon/reference/Base/01Skyrim",
+      "game": "skyrim", "kind": "records", "plugin": "Skyrim.esm",
+      "note": "vanilla Skyrim SE"
+    },
+    {
+      "name": "update",
+      "root": "C:/dev/modding/Wintersun-Nordic-Addon/reference/Base/02Update",
+      "game": "skyrim", "kind": "records", "plugin": "Update.esm"
+    },
+    {
+      "name": "dawnguard",
+      "root": "C:/dev/modding/Wintersun-Nordic-Addon/reference/Base/03Dawnguard",
+      "game": "skyrim", "kind": "records", "plugin": "Dawnguard.esm"
+    },
+    {
+      "name": "hearthfire",
+      "root": "C:/dev/modding/Wintersun-Nordic-Addon/reference/Base/04Hearthfire",
+      "game": "skyrim", "kind": "records", "plugin": "HearthFires.esm"
+    },
+    {
+      "name": "dragonborn",
+      "root": "C:/dev/modding/Wintersun-Nordic-Addon/reference/Base/05Dragonborn",
+      "game": "skyrim", "kind": "records", "plugin": "Dragonborn.esm"
+    },
+
+    {
+      "name": "enderal-skyrim",
+      "root": "C:/dev/modding/enderal-mods/reference/base/Skyrim",
+      "game": "enderal", "kind": "records", "plugin": "Skyrim.esm",
+      "note": "Enderal's MODIFIED Skyrim.esm -- diverges from vanilla; this is the one that matters when patching Enderal"
+    },
+    {
+      "name": "enderal-fs",
+      "root": "C:/dev/modding/enderal-mods/reference/base/EnderalFS",
+      "game": "enderal", "kind": "records", "plugin": "Enderal - Forgotten Stories.esm"
+    },
+    {
+      "name": "enderal-update",
+      "root": "C:/dev/modding/enderal-mods/reference/base/Update",
+      "game": "enderal", "kind": "records", "plugin": "Update.esm"
+    },
+    {
+      "name": "skyui",
+      "root": "C:/dev/modding/enderal-mods/reference/base/SkyUI_SE",
+      "game": "enderal", "kind": "records", "plugin": "SkyUI_SE.esp"
+    },
+
+    {
+      "name": "vanilla-scripts",
+      "root": "C:/dev/modding/enderal-mods/reference/base/VanillaScripts",
+      "game": "skyrim", "kind": "scripts",
+      "note": "Skyrim's own Papyrus source; Enderal runs on the same engine so these apply to both"
+    },
+    {
+      "name": "enderal-scripts",
+      "root": "C:/dev/modding/enderal-mods/reference/base/EnderalScripts",
+      "game": "enderal", "kind": "scripts"
+    },
+    {
+      "name": "skse-scripts",
+      "root": "C:/dev/modding/enderal-mods/reference/base/SKSEScripts",
+      "game": "both", "kind": "scripts"
+    }
+  ],
+  "skipped": [
+    {
+      "path": "C:/dev/modding/enderal-mods/reference/base/SkyrimReal",
+      "canonical": "skyrim",
+      "reason": "byte-identical copy of vanilla Skyrim.esm (verified: 2484/2484 filenames match in Weapons)"
+    },
+    {
+      "path": "C:/dev/modding/enderal-mods/reference/base/UpdateReal",
+      "canonical": "update", "reason": "copy of vanilla Update.esm"
+    },
+    {
+      "path": "C:/dev/modding/enderal-mods/reference/base/DawnguardReal",
+      "canonical": "dawnguard", "reason": "copy of vanilla Dawnguard.esm"
+    },
+    {
+      "path": "C:/dev/modding/enderal-mods/reference/base/HearthFiresReal",
+      "canonical": "hearthfire", "reason": "copy of vanilla HearthFires.esm"
+    },
+    {
+      "path": "C:/dev/modding/enderal-mods/reference/base/DragonbornReal",
+      "canonical": "dragonborn", "reason": "copy of vanilla Dragonborn.esm"
+    },
+    {
+      "path": "C:/dev/modding/enderal-mods/reference/base/Dawnguard-stub",
+      "canonical": null,
+      "reason": "Enderal's empty stub masters -- 2-3 placeholder records, nothing to index"
+    },
+    {
+      "path": "C:/dev/modding/enderal-mods/reference/base/Dragonborn-stub",
+      "canonical": null, "reason": "empty stub master"
+    },
+    {
+      "path": "C:/dev/modding/enderal-mods/reference/base/HearthFires-stub",
+      "canonical": null, "reason": "empty stub master"
+    }
+  ]
+}

@@ -27,6 +27,12 @@ RAG vector store. Read `README.md` for the layout and `curated/overview.md` for 
    frontmatter and never writes to them. Its deps live in `rag/requirements.txt` and the repo
    `.venv`; `rag/chunk.py` stays stdlib-only so the chunker stays portable to another store.
    After any sync that changed `docs/`, run `python rag/index.py --build`.
+9. **Game data is copyrighted and never enters this repo.** The decompiled Bethesda/SureAI
+   plugin dumps and Papyrus source are indexed **in place** from the source repos — the index
+   stores paths and reads bodies on demand. Never copy, extract or commit a `.yaml` record dump,
+   `.psc`, `.pex`, `.esp`/`.esm`/`.esl` or `.bsa` here; `.gitignore` backstops this, but the rule
+   is the point, not the backstop. Routing lives in `rag/gamesources.json`, never in
+   `rag/gamedata.py`. Nothing in that index is embedded — it is exact-match and BM25 only.
 
 ## Map
 
@@ -37,6 +43,8 @@ tools/sync.ps1             PowerShell 5.1 wrapper
 docs/                      GENERATED corpus; INDEX.md and catalog.json are its indexes
 curated/                   overview, glossary, repos — hand-written
 rag/                       the retriever: chunk.py, store.py, index.py, search.py, server.py
+rag/gamesources.json       manifest: which game-file trees are indexed, and the deduped copies
+rag/gamedata.py            the game-file lookup index (in place, never copied, never embedded)
 rag/README.md              the design note, and how to build and register the index
 .claude/skills/sync-docs   the /sync-docs skill: check → sync → review → reindex → commit
 ```

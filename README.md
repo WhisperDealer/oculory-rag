@@ -96,6 +96,19 @@ and filtered on the frontmatter (`game` first — Skyrim and Enderal facts must 
 offline, needs no API key, and the index is derived state you rebuild rather than commit. Full
 detail, including the retrieval quality bar, is in `rag/README.md`.
 
+A second index covers the **decompiled game files** — 331,641 records and 19,404 Papyrus scripts
+from vanilla Skyrim SE and from Enderal's own plugins — behind the `game_search` and `game_read`
+tools, so a question can be answered from the actual record rather than from memory of it.
+
+```powershell
+.venv\Scripts\python.exe rag\gamedata.py --build     # ~50 seconds
+```
+
+That data is copyrighted Bethesda and SureAI content. **It is indexed in place and never copied
+into this repo**: the index stores paths into the source repos and reads bodies on demand, so no
+game file is ever committed here. See `rag/gamesources.json` for what is indexed and rule 9 in
+`CLAUDE.md` for the constraint.
+
 ## Source repos
 
 | Source | Path | What is taken | What is skipped |

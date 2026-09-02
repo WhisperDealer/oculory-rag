@@ -6,15 +6,22 @@ behaviour. The design decisions below came first and the code follows them; wher
 learned something the note did not anticipate, it is called out.
 
 ```
-chunk.py    frontmatter parser + heading-aware chunker      stdlib only
-store.py    SQLite: documents, chunks, FTS5, embeddings
-embed.py    BAAI/bge-small-en-v1.5 via fastembed, lazy-loaded
-index.py    CLI: --build / --check / --rebuild / --stats / --eval
-search.py   hybrid fusion, filters, ranking, record routing
-server.py   the MCP stdio server: search, fetch, list_docs
-eval.jsonl  15 question -> expected-document cases
-index/      the built index and the model cache (gitignored)
+chunk.py          frontmatter parser + heading-aware chunker      stdlib only
+store.py          SQLite: documents, chunks, FTS5, embeddings
+embed.py          BAAI/bge-small-en-v1.5 via fastembed, lazy-loaded
+index.py          CLI: --build / --check / --rebuild / --stats / --eval
+search.py         hybrid fusion, filters, ranking, record routing
+gamesources.json  manifest: which game-file trees are indexed, and the deduped copies
+gamedata.py       the game-file lookup index -- in place, never copied, never embedded
+server.py         the MCP stdio server: search, fetch, list_docs, game_search, game_read
+eval.jsonl        15 question -> expected-document cases
+index/            both built indexes and the model cache (gitignored)
 ```
+
+Two corpora, deliberately separate. The **prose corpus** (99 documents) is written knowledge and
+gets the full hybrid treatment. The **game data** (331k records, 19k scripts) is copyrighted
+lookup material that is never copied here and never embedded. They have different lifecycles,
+different rebuild costs and different rules, so they get different indexes and different tools.
 
 ## Setup
 
@@ -48,6 +55,8 @@ must resolve the repo from any working directory; it derives the root from its o
 | `search(query, k, game, section, kind, project, mod, tag, include_generated, include_superseded)` | Ranked passages with breadcrumb, source repo/path, confidence counts and flags. |
 | `fetch(id, chunk, max_chars)` | A whole document, or one chunk with its neighbours. Oversized documents come back as a heading outline with chunk indices. |
 | `list_docs(section, game, kind, project, mod, tag, q, limit)` | The table of contents, no bodies. |
+| `game_search(query, kind, game, type, plugin, limit)` | Look up actual game records and Papyrus scripts by EditorID, FormID, FormKey or in-game name. |
+| `game_read(ref, game, full, max_chars)` | One record's YAML or one script's source, English-only by default. |
 
 There is also a CLI for the same retrieval, useful when tuning:
 
@@ -67,6 +76,49 @@ The index is derived. After a sync that changed `docs/`:
 is re-chunked and re-embedded only when its body hash moved; a changed `id` is a delete plus an
 add. The server compares the index against `docs/catalog.json` at startup and appends a one-line
 "run index.py --build" note to its answers when it is behind — it never refuses to serve.
+
+## Game data
+
+A second, separate index covers the decompiled game files themselves: **331,641 records and
+19,404 Papyrus scripts**, from vanilla Skyrim SE (and its DLC) and from Enderal's own modified
+plugins. This is what `game_search` and `game_read` serve.
+
+```powershell
+.venv\Scripts\python.exe rag\gamedata.py --build     # ~50s cold, ~8s when nothing changed
+.venv\Scripts\python.exe rag\gamedata.py --stats
+.venv\Scripts\python.exe rag\gamedata.py --find "Blades Sword"
+```
+
+Three rules govern it, and none of them apply to the prose corpus:
+
+- **It is copyrighted Bethesda/SureAI content, so nothing is copied here.** The trees are indexed
+  **in place** from the source repos; the index stores absolute paths and reads bodies on demand.
+  Both source repos already gitignore their own `reference/` with zero files tracked, and this
+  repo's `.gitignore` backstops every game-data extension. `rag/index/` is derived state.
+- **Nothing is embedded.** One chunk per record would be ~55 hours of CPU here, and these are
+  lookup data, not prose — exactly the case the design note routes to "a BM25/exact-match index
+  keyed on EditorID and FormID". Retrieval is exact-identifier-first, then FTS5.
+- **Routing lives in `rag/gamesources.json`**, never in `gamedata.py` — the same discipline
+  `sources.json` enforces for the corpus. That manifest also records the eight skipped trees.
+
+Roughly 234,000 files are byte-identical copies: Enderal's `SkyrimReal`, `UpdateReal`,
+`DawnguardReal`, `HearthFiresReal` and `DragonbornReal` re-ship what Wintersun's `reference/Base`
+already holds (verified 2484/2484 filenames in Weapons). Only the canonical copy is indexed. What
+is *not* a duplicate is Enderal's `Skyrim` tree — its **modified** `Skyrim.esm`, which diverges
+from vanilla and is the one that matters when patching Enderal. Both are indexed, and `game`
+tells them apart, so always filter when the distinction matters.
+
+Identity comes from the filename (`<EditorID> - <FormID>_<plugin>.yaml`), so the corpus enumerates
+without opening anything; only the English display name needs a bounded 8 KB read, threaded 16
+ways. Spriggit writes two layouts and both are handled: one file per record for most types, and a
+**directory per record** holding `RecordData.yaml` for Cells, Worldspaces and DialogTopics — which
+is 177,000 records, including all 81,186 dialogue topics. Missing that second layout silently
+costs 38% of the corpus; `walk_records` covers every YAML except each plugin's own header and the
+`GroupRecordData.yaml` container metadata.
+
+EditorIDs are also indexed CamelCase-split (`AkaviriKatana` → `Akaviri Katana`), so a two-word
+query finds a one-word identifier. Records carry nine localisations; only English is indexed, and
+`game_read` strips the other eight unless you pass `full=true`.
 
 ---
 
