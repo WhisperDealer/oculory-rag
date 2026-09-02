@@ -1,4 +1,4 @@
-# confluence-rag-modding — working guide
+# oculory-rag — working guide
 
 A **pull-aggregator** knowledge base. Five modding repos are the canonical sources; this repo
 holds a metadata-stamped copy of their documentation, shaped for reading directly and for a future

@@ -1,4 +1,4 @@
-# confluence-rag-modding — the modding knowledge base
+# oculory-rag — the modding knowledge base
 
 One place that holds the documentation from all of my Bethesda modding repos: how Skyrim SE and
 Enderal SE actually work under the hood, what third-party mods like EGO, Requiem, SkyPatcher and
